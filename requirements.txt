@@ -1,7 +1,8 @@
 fastapi==0.104.1
 uvicorn==0.24.0
-# tensorflow is optional if you want real model inference
-# tensorflow==2.21.0
+# TensorFlow and scikit-learn are required for the improved training workflow.
+tensorflow>=2.14.0
+scikit-learn>=1.3.0
 numpy>=1.24.3
 pillow>=10.0.0
 python-multipart==0.0.6
