@@ -11,137 +11,124 @@ except ImportError:
 
 from app.core.config import settings
 
-# -----------------------
-# Configuration
-# -----------------------
+# --- CONSTANTS ---
 IMG_SIZE = 224
 BASE_DIR = Path(__file__).resolve().parent
-MODEL_DIR = Path(settings.MODEL_PATH).parent
-CLASS_NAMES_PATH = MODEL_DIR / 'class_names.json'
+# We point to the new v3 weight path
+MODEL_PATH = Path(settings.MODEL_PATH).parent / 'crop_model_v3.h5'
+CLASS_NAMES_PATH = Path(settings.MODEL_PATH).parent / 'class_names.json'
 DISEASE_INFO_PATH = BASE_DIR / 'disease_info.json'
 
 class CropDiseaseModel:
     """
-    Upgraded Senior AI Engine: Handles high-accuracy inference with 
-    false-positive protection and detailed disease intelligence.
+    AgriPro Senior AI Engine (v3)
+    High-accuracy inference with 'Not a Leaf' detection and 0.75 confidence enforcement.
     """
     def __init__(self):
         self.model = None
         self.class_names = []
         self.disease_info = {}
-        self._load_class_names()
-        self._load_disease_info()
+        self._load_metadata()
         self._load_model()
 
-    def _load_class_names(self):
+    def _load_metadata(self):
+        # Load Class Names
         if CLASS_NAMES_PATH.exists():
-            try:
-                with open(CLASS_NAMES_PATH, 'r', encoding='utf-8') as f:
-                    self.class_names = json.load(f)
-            except Exception:
-                self.class_names = []
+            with open(CLASS_NAMES_PATH, 'r', encoding='utf-8') as f:
+                self.class_names = json.load(f)
         else:
-            # PlantVillage Standard Defaults
-            self.class_names = ['Potato___healthy', 'Potato___Early_blight', 'Potato___Late_blight']
+            # Fallback if training hasn't run yet
+            self.class_names = ["Invalid_Not_A_Leaf", "Potato___Early_blight", "Potato___Late_blight", "Potato___healthy", "Tomato___healthy"]
 
-    def _load_disease_info(self):
+        # Load Disease Info
         if DISEASE_INFO_PATH.exists():
-            try:
-                with open(DISEASE_INFO_PATH, 'r', encoding='utf-8') as f:
-                    self.disease_info = json.load(f)
-            except Exception:
-                pass
+            with open(DISEASE_INFO_PATH, 'r', encoding='utf-8') as f:
+                self.disease_info = json.load(f)
 
     def _load_model(self):
-        if tf is None or not os.path.exists(settings.MODEL_PATH):
-            print(f"⚠️ Model weight not found at {settings.MODEL_PATH}")
+        if tf is None:
+            print("❌ TensorFlow not installed.")
             return
-        try:
-            self.model = tf.keras.models.load_model(settings.MODEL_PATH)
-            print("🚀 Trained AI Model loaded successfully.")
-        except Exception as e:
-            print(f"❌ Model load error: {e}")
-            self.model = None
+
+        final_path = str(MODEL_PATH) if MODEL_PATH.exists() else settings.MODEL_PATH
+        if os.path.exists(final_path):
+            try:
+                self.model = tf.keras.models.load_model(final_path)
+                print(f"🚀 Optimized AI Core v3 loaded from {final_path}")
+            except Exception as e:
+                print(f"❌ Model load error: {e}")
+        else:
+            print(f"⚠️ Warning: Model weights not found at {final_path}")
 
     async def predict(self, image_path: str):
         """
-        Predicts disease with TTA, Spectral Filtering, and Blur Detection.
-        Optimized for Farmer-Friendly UX with simple language and multi-lingual support.
+        Pure neural inference with strict confidence controls.
         """
         if self.model is None:
-            raise RuntimeError("Model is not loaded. Please train using train.py first.")
+            # For hackathon/demo purposes if no model is found, return a technical error
+            return self._format_response("Technical Error", 0.0, "Model weights missing", "")
 
-        # 1. Base Preprocessing
+        # 1. Preprocessing
         img = Image.open(image_path).convert('RGB')
         img_resized = img.resize((IMG_SIZE, IMG_SIZE))
-        img_array = np.array(img_resized).astype(np.float32)
-
-        # 1c. Image Quality Check: Blur Detection (Laplacian Variance)
-        # We use a simple numpy implementation of the Laplacian operator
-        gray = np.array(img.convert('L'))
-        laplacian = np.array([
-            [0, 1, 0],
-            [1, -4, 1],
-            [0, 1, 0]
-        ])
-        # Simple convolution-like operation for variance
-        from scipy.signal import convolve2d
-        score = convolve2d(gray, laplacian, mode='valid').var()
-        is_blurry = score < 60 # Threshold for common phone cameras
-
-        # 2. TTA (Test Time Augmentation)
-        versions = [img_array, np.fliplr(img_array), np.flipud(img_array)]
-        batch_tta = np.stack(versions, axis=0)
-        batch_preprocessed = preprocess_input(batch_tta)
-
-        # 3. Accumulated Prediction
-        predictions_all = self.model.predict(batch_preprocessed, verbose=0)
-        predictions_avg = np.mean(predictions_all, axis=0)
+        img_array = np.array(img_resized)
         
-        class_idx = np.argmax(predictions_avg)
-        confidence = float(predictions_avg[class_idx])
+        # Expand for batch and apply EfficientNet preprocessing
+        img_preprocessed = preprocess_input(np.expand_dims(img_array, axis=0))
+
+        # 2. Prediction
+        preds = self.model.predict(img_preprocessed, verbose=0)[0]
+        class_idx = np.argmax(preds)
+        confidence = float(preds[class_idx])
+        label = self.class_names[class_idx]
+
+        # 3. Validation Logic (High Integrity)
         
-        # 4. ROBUST CLASSIFICATION LOGIC
-        label_key = self.class_names[class_idx] if class_idx < len(self.class_names) else "Unknown"
-        
-        # Confidence Threshold (75% as requested)
+        # A. Not a Leaf Check
+        if label == "Invalid_Not_A_Leaf":
+            return self._format_response(
+                "Not a Leaf", 
+                confidence, 
+                "This doesn't look like a plant leaf. Please upload a clear photo of a crop leaf.", 
+                ""
+            )
+
+        # B. Confidence Guard (Enforce 0.75 threshold)
         if confidence < 0.75:
-            # Downgrade to 'Healthy/Uncertain' if below threshold
-            label_key = [c for c in self.class_names if "healthy" in c.lower()][0] if self.class_names else "Potato___healthy"
-            prediction_note = "Low Confidence - Take a clearer photo"
-        else:
-            prediction_note = ""
+            return self._format_response(
+                "Uncertain Result", 
+                confidence, 
+                "The analysis is uncertain. Please provide a clearer photo with better lighting.", 
+                ""
+            )
 
-        # 5. Disease Knowledge Mapping
-        info = self.disease_info.get(label_key, {
-            "name": label_key.replace("___", " ").replace("_", " "),
-            "symptoms": "No abnormalities detected.",
-            "prevention": "Monitor regularly.",
-            "treatment": "No treatment required."
-        })
-
-        is_healthy = "healthy" in label_key.lower()
+        # 4. Success Path
+        info = self.disease_info.get(label, {"simple_en": "Unknown crop or disease.", "prevention": "N/A"})
+        is_healthy = "healthy" in label.lower()
         
-        # Farmer Friendly Mapping (Simple Words)
+        return self._format_response(
+            label if is_healthy else info.get("name", label),
+            confidence,
+            info.get("simple_en", "Analysis successful."),
+            info.get("prevention", "No specific steps found.") if not is_healthy else "No disease detected."
+        )
+
+    def _format_response(self, label, confidence, message, prevention):
+        """
+        Strict output format as requested by requirements.
+        """
         return {
-            "status": "Healthy" if is_healthy else "Diseased",
-            "disease_name": info["name"],
-            "confidence": round(confidence * 100, 1),
-            "is_blurry": bool(is_blurry),
-            "note": prediction_note,
-            # Simple Advice
-            "simple_advice": {
-                "en": info.get("simple_en", "Your plant looks good!") if is_healthy else info.get("simple_en", "Treatment needed."),
-                "hi": info.get("simple_hi", "आपका पौधा स्वस्थ है!") if is_healthy else info.get("simple_hi", "इलाज की जरूरत है।")
-            },
-            "steps": [
-                info["prevention"],
-                info["treatment"]
-            ],
-            "recommendation": info["treatment"],
-            # Technical fields (for history)
-            "label": label_key,
-            "crop_type": label_key.split("___")[0] if "___" in label_key else "Unknown"
+            "label": label.replace("___", " ").replace("_", " "),
+            "confidence": f"{round(confidence * 100, 1)}%",
+            "message": message,
+            "prevention": prevention,
+            # Internal fields for legacy compatibility (optional but safe)
+            "disease_status": "Healthy" if "healthy" in label.lower() else "Diseased",
+            "confidence_score": confidence,
+            "confidence_pct": round(confidence * 100, 1),
+            "disease_info": message,
+            "treatment": prevention,
+            "crop_type": label.split("___")[0] if "___" in label else "Unknown"
         }
 
 ml_service = CropDiseaseModel()

@@ -1,144 +1,130 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Clock, Filter, Search, ChevronRight, History } from 'lucide-react';
-import { apiService } from '../services/api';
+import { Clock, Search, ChevronRight, History as HistoryIcon, Trash2 } from 'lucide-react';
+import { useScanHistory } from '../context/HistoryContext';
 import { useAppContext } from '../context/AppContext';
 
+const HEALTHY_IMAGES = [
+  'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?auto=format&fit=crop&q=80&w=400',
+  'https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?auto=format&fit=crop&q=80&w=400',
+  'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?auto=format&fit=crop&q=80&w=400',
+];
+
+const DISEASED_IMAGES = [
+  'https://images.unsplash.com/photo-1592419044706-39796d40f98c?auto=format&fit=crop&q=80&w=400',
+  'https://images.unsplash.com/photo-1574943320219-553eb213f72d?auto=format&fit=crop&q=80&w=400',
+];
+
 const Dashboard = () => {
-  const [history, setHistory] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { scans, clearHistory } = useScanHistory();
   const [searchTerm, setSearchTerm] = useState('');
   const { t } = useAppContext();
 
-  useEffect(() => {
-    const fetchHistory = async () => {
-      setLoading(true);
-      const data = await apiService.getHistory();
-      if (data.length === 0) {
-        setHistory([
-          { id: 1, disease: 'Tomato Late Blight', status: 'Diseased', confidence: 94.2, timestamp: '2024-03-20T10:30:00Z', image: 'https://images.unsplash.com/photo-1592819695396-064b9012a660?auto=format&fit=crop&q=80&w=300' },
-          { id: 2, disease: 'Healthy Soy', status: 'Healthy', confidence: 99.1, timestamp: '2024-03-19T14:20:00Z', image: 'https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?auto=format&fit=crop&q=80&w=300' },
-          { id: 3, disease: 'Rice Blast', status: 'Diseased', confidence: 88.5, timestamp: '2024-03-18T09:15:00Z', image: 'https://images.unsplash.com/photo-1536657464919-892534f60d6e?auto=format&fit=crop&q=80&w=300' },
-        ]);
-      } else {
-        setHistory(data);
-      }
-      setLoading(false);
-    };
-
-    fetchHistory();
-  }, []);
-
   const filteredHistory = useMemo(
-    () => history.filter(item =>
-      item.disease.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.status.toLowerCase().includes(searchTerm.toLowerCase())
+    () => scans.filter(item =>
+      (item.disease_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item.status || '').toLowerCase().includes(searchTerm.toLowerCase())
     ),
-    [history, searchTerm]
+    [scans, searchTerm]
   );
 
   const stats = useMemo(() => {
-    const total = history.length || 1;
-    const healthy = history.filter((item) => item.status === 'Healthy').length;
-    const diseased = history.filter((item) => item.status === 'Diseased').length;
-    const avgConfidence = history.reduce((sum, item) => sum + item.confidence, 0) / total;
-
+    const total = scans.length;
+    const healthy = scans.filter(i => i.status?.toLowerCase() === 'healthy').length;
+    const diseased = scans.filter(i => i.status?.toLowerCase() === 'diseased').length;
+    const avg = total > 0 ? scans.reduce((s, i) => s + (i.confidence || 0), 0) / total : 0;
     return [
-      { label: 'Total Records', value: history.length },
-      { label: 'Healthy Rate', value: `${((healthy / total) * 100).toFixed(0)}%` },
-      { label: 'Avg Confidence', value: `${avgConfidence.toFixed(1)}%` },
-      { label: 'Diseased Cases', value: diseased },
+      { label: 'Total Scans', value: total, color: 'text-slate-950' },
+      { label: 'Healthy', value: healthy, color: 'text-green-600' },
+      { label: 'Avg Confidence', value: `${avg.toFixed(1)}%`, color: 'text-blue-600' },
+      { label: 'Alerts', value: diseased, color: 'text-red-500' },
     ];
-  }, [history]);
+  }, [scans]);
+
+  const getImage = (item, idx) => {
+    if (item.status?.toLowerCase() === 'healthy') return HEALTHY_IMAGES[idx % HEALTHY_IMAGES.length];
+    return DISEASED_IMAGES[idx % DISEASED_IMAGES.length];
+  };
 
   return (
-    <div className="container mx-auto px-4 md:px-6 lg:px-8 py-12">
-      <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between mb-12">
-        <div className="max-w-3xl">
-          <h1 className="text-4xl md:text-5xl font-extrabold mb-4 text-white">{t('previous')}</h1>
-          <p className="text-gray-400">Review and manage your crop health reports with fast search and clear insights.</p>
+    <div className="max-w-7xl mx-auto px-6 py-16">
+      {/* Header */}
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between mb-14">
+        <div>
+          <h1 className="text-5xl font-black text-slate-950 tracking-tighter mb-2">{t('history')}</h1>
+          <p className="text-lg text-slate-400 font-medium">Your diagnostic archive and crop health timeline.</p>
         </div>
-
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-          <div className="relative min-w-[260px]">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input
-              type="text"
-              placeholder="Search history..."
-              className="w-full rounded-3xl border border-white/10 bg-slate-950/70 pl-12 pr-4 py-3 text-sm text-white outline-none focus:border-emerald-400/50 focus:ring-2 focus:ring-emerald-400/15"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              type="text" placeholder="Filter scans..."
+              className="w-64 rounded-2xl border border-slate-200 bg-white pl-11 pr-4 py-3 text-sm text-slate-900 outline-none focus:border-green-400 transition-all"
+              value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <button className="inline-flex items-center justify-center rounded-3xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white transition hover:bg-white/10">
-            <Filter className="w-4 h-4" />
-          </button>
+          {scans.length > 0 && (
+            <button onClick={clearHistory} className="p-3 rounded-xl border border-red-200 text-red-400 hover:bg-red-500 hover:text-white hover:border-red-500 transition-all" title="Clear All">
+              <Trash2 className="w-4 h-4" />
+            </button>
+          )}
         </div>
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-4 mb-10">
-        {stats.map((item) => (
-          <div key={item.label} className="glass-card p-6 border border-white/10 shadow-2xl shadow-slate-950/20">
-            <p className="text-sm uppercase tracking-[0.2em] text-emerald-300/80 mb-3">{item.label}</p>
-            <p className="text-3xl font-black text-white">{item.value}</p>
-          </div>
+      {/* Stats */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-14">
+        {stats.map((item, i) => (
+          <motion.div key={item.label} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}
+            className="p-6 bg-white rounded-2xl border border-slate-100 shadow-sm"
+          >
+            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">{item.label}</p>
+            <p className={`text-3xl font-black tracking-tighter ${item.color}`}>{item.value}</p>
+          </motion.div>
         ))}
       </div>
 
-      {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="glass-card h-80 shimmer rounded-3xl"></div>
-          ))}
-        </div>
-      ) : filteredHistory.length > 0 ? (
+      {/* Grid */}
+      {filteredHistory.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
           {filteredHistory.map((item, idx) => (
-            <motion.div
-              key={item.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.08 }}
-              className="glass-card group overflow-hidden cursor-pointer border border-white/10 shadow-2xl shadow-slate-950/10"
+            <motion.div key={item.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}
+              className="bg-white rounded-[2rem] border border-slate-100 overflow-hidden shadow-sm hover:shadow-lg hover:border-green-300 transition-all duration-500 group"
             >
               <div className="relative h-52 overflow-hidden">
-                <img src={item.image} alt={item.disease} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                <div className="absolute inset-x-0 top-4 px-4 flex items-center justify-between">
-                  <span className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] ${item.status === 'Healthy' ? 'bg-emerald-500/90 text-white' : 'bg-red-500/90 text-white'}`}>
+                <img src={getImage(item, idx)} alt={item.disease_name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                <div className="absolute top-4 left-4 right-4 flex justify-between items-center">
+                  <span className={`rounded-lg px-3 py-1 text-[10px] font-black uppercase tracking-widest ${item.status?.toLowerCase() === 'healthy' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
                     {item.status}
                   </span>
-                  <div className="rounded-2xl bg-slate-950/80 px-3 py-2 text-xs font-semibold text-slate-100 backdrop-blur">
-                    {new Date(item.timestamp).toLocaleDateString()}
-                  </div>
+                  <span className="rounded-lg bg-black/40 backdrop-blur px-3 py-1 text-[10px] font-black text-white">
+                    {new Date(item.timestamp).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                  </span>
                 </div>
               </div>
 
               <div className="p-6">
-                <div className="flex items-start justify-between gap-4 mb-4">
-                  <div>
-                    <h3 className="text-xl font-bold text-white mb-2">{item.disease}</h3>
-                    <p className="text-sm text-slate-400 line-clamp-2">Detection confidence and report details for quick review.</p>
-                  </div>
-                  <span className="text-2xl font-black text-emerald-300">{item.confidence}%</span>
+                <h3 className="text-lg font-black text-slate-900 tracking-tight mb-1 line-clamp-1">{item.disease_name}</h3>
+                <div className="flex items-center gap-1.5 text-slate-400 text-xs font-bold mb-4">
+                  <Clock className="w-3 h-3" />
+                  {new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </div>
-                <div className="flex items-center justify-between text-sm text-slate-400">
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4" />
-                    <span>{new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-emerald-300 transition-transform duration-300 group-hover:translate-x-1" />
+                <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+                  <span className="text-2xl font-black text-green-600">{item.confidence}%</span>
+                  <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-green-500 group-hover:translate-x-1 transition-all" />
                 </div>
               </div>
             </motion.div>
           ))}
         </div>
       ) : (
-        <div className="glass-card rounded-3xl border border-white/10 p-12 text-center">
-          <div className="mx-auto mb-6 grid h-20 w-20 place-items-center rounded-full bg-white/5 text-emerald-300">
-            <History className="w-10 h-10" />
+        <div className="text-center py-32">
+          <div className="mx-auto mb-8 w-24 h-24 bg-slate-100 rounded-3xl flex items-center justify-center">
+            <HistoryIcon className="w-10 h-10 text-slate-300" />
           </div>
-          <h3 className="text-3xl font-bold text-white mb-3">{t('noHistory')}</h3>
-          <p className="text-slate-400">No reports yet. Upload an image to start tracking your crop health.</p>
+          <h3 className="text-3xl font-black text-slate-900 mb-3 tracking-tighter">No Scans Yet</h3>
+          <p className="text-lg text-slate-400 font-medium max-w-sm mx-auto mb-8">Upload a leaf photo on the home page to start building your crop health archive.</p>
+          <a href="/" className="inline-block px-8 py-4 bg-slate-950 text-white font-black rounded-2xl hover:bg-green-600 transition-all">Start Scanning</a>
         </div>
       )}
     </div>

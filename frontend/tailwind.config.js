@@ -21,7 +21,19 @@ export default {
       },
       animation: {
         'bounce-slow': 'bounce 3s infinite',
-      }
+        'gradient-flow': 'gradient-flow 4s ease infinite',
+        'shimmer': 'shimmer 2s infinite',
+      },
+      keyframes: {
+        'gradient-flow': {
+          '0%': { backgroundPosition: '0% 50%' },
+          '50%': { backgroundPosition: '100% 50%' },
+          '100%': { backgroundPosition: '0% 50%' },
+        },
+        'shimmer': {
+          '100%': { transform: 'translateX(100%)' },
+        },
+      },
     },
   },
   plugins: [],

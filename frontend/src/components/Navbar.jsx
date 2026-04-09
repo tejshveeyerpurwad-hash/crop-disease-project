@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Sun, Moon, Languages, Leaf, Menu, X } from 'lucide-react';
+import { Moon, Sun, Menu, X } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const Navbar = () => {
   const { darkMode, setDarkMode, language, setLanguage, t } = useAppContext();
@@ -10,107 +10,71 @@ const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const navLinks = [
-    { name: t('home'), path: '/' },
-    { name: t('history'), path: '/history' },
-    { name: t('about'), path: '/about' },
+    { name: 'Home', path: '/' },
+    { name: 'History', path: '/history' },
+    { name: 'About', path: '/about' },
   ];
 
-  const toggleMobile = () => setMobileOpen((value) => !value);
-
   return (
-    <nav className="sticky top-0 z-50 w-full bg-slate-950/80 border-b border-white/10 backdrop-blur-xl shadow-lg shadow-slate-900/20">
-      <div className="container mx-auto px-4 md:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
-          <Link to="/" className="flex items-center gap-3">
-            <motion.div
-              whileHover={{ rotate: 15 }}
-              className="p-3 rounded-2xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/20"
-            >
-              <Leaf className="w-7 h-7" />
-            </motion.div>
-            <div className="space-y-1">
-              <p className="text-lg font-semibold tracking-tight text-white">CropGuard AI</p>
-              <p className="text-xs uppercase tracking-[0.3em] text-emerald-300/70">Crop Health Intelligence</p>
-            </div>
-          </Link>
-
-          <div className="hidden md:flex items-center gap-10">
-            {navLinks.map((link) => {
-              const isActive = location.pathname === link.path;
-              return (
-                <Link
-                  key={link.path}
-                  to={link.path}
-                  className={`relative text-sm font-medium transition-colors ${
-                    isActive ? 'text-emerald-300' : 'text-slate-300 hover:text-emerald-300'
-                  }`}
-                  onClick={() => setMobileOpen(false)}
-                >
-                  {link.name}
-                  <span
-                    className={`absolute inset-x-0 -bottom-1 h-0.5 rounded-full bg-emerald-400 transition-all ${
-                      isActive ? 'opacity-100 w-full' : 'opacity-0 w-0'
-                    }`}
-                  />
-                </Link>
-              );
-            })}
+    <nav className="sticky top-0 z-[100] w-full bg-white/90 backdrop-blur-xl border-b border-slate-200/60">
+      <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+        {/* Logo */}
+        <Link to="/" className="flex items-center gap-2.5">
+          <div className="w-9 h-9 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-green-500/20">
+            <span className="text-white text-sm font-black">A</span>
           </div>
+          <span className="text-lg font-black tracking-tight text-slate-900">Agri<span className="text-green-600">Pro</span></span>
+        </Link>
 
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setLanguage(language === 'en' ? 'hi' : 'en')}
-              className="hidden md:inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-100 transition hover:border-emerald-300/30 hover:bg-emerald-500/10"
-              title="Toggle Language"
+        {/* Desktop Links */}
+        <div className="hidden md:flex items-center gap-1">
+          {navLinks.map((link) => (
+            <Link
+              key={link.path}
+              to={link.path}
+              className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+                location.pathname === link.path 
+                  ? 'text-green-700 bg-green-50' 
+                  : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'
+              }`}
             >
-              <Languages className="w-4 h-4" />
-              <span className="font-semibold uppercase">{language}</span>
-            </button>
-
-            <button
-              onClick={() => setDarkMode(!darkMode)}
-              className="inline-flex items-center justify-center rounded-2xl border border-white/10 bg-white/5 p-3 text-slate-100 transition hover:border-emerald-300/30 hover:bg-emerald-500/10"
-              title="Toggle Theme"
-            >
-              {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            </button>
-
-            <button
-              onClick={toggleMobile}
-              className="inline-flex items-center justify-center rounded-2xl border border-white/10 bg-white/5 p-3 text-slate-100 transition hover:border-emerald-300/30 hover:bg-emerald-500/10 md:hidden"
-              aria-label="Toggle mobile menu"
-            >
-              {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </button>
-          </div>
+              {link.name}
+            </Link>
+          ))}
         </div>
 
+        {/* Right Actions */}
+        <div className="flex items-center gap-2">
+          <div className="hidden sm:flex items-center bg-slate-100 rounded-lg p-0.5">
+            <button onClick={() => setLanguage('en')} className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${language === 'en' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400'}`}>EN</button>
+            <button onClick={() => setLanguage('hi')} className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${language === 'hi' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400'}`}>हिं</button>
+          </div>
+
+          <button onClick={() => setDarkMode(!darkMode)} className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-all">
+            {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          </button>
+
+          <button onClick={() => setMobileOpen(v => !v)} className="md:hidden w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100">
+            {mobileOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Menu */}
+      <AnimatePresence>
         {mobileOpen && (
-          <div className="mt-4 rounded-3xl border border-white/10 bg-slate-950/95 p-4 shadow-xl shadow-slate-950/20 md:hidden">
-            <div className="flex flex-col gap-3">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.path}
-                  to={link.path}
-                  onClick={() => setMobileOpen(false)}
-                  className={`block rounded-2xl px-4 py-3 text-sm font-medium transition ${
-                    location.pathname === link.path ? 'bg-emerald-500/15 text-emerald-200' : 'text-slate-200 hover:bg-white/5 hover:text-emerald-300'
-                  }`}
-                >
+          <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }} className="md:hidden overflow-hidden bg-white border-t border-slate-100">
+            <div className="px-6 py-4 space-y-1">
+              {navLinks.map(link => (
+                <Link key={link.path} to={link.path} onClick={() => setMobileOpen(false)}
+                  className={`block px-4 py-3 rounded-lg text-sm font-semibold ${location.pathname === link.path ? 'text-green-700 bg-green-50' : 'text-slate-600'}`}>
                   {link.name}
                 </Link>
               ))}
-              <button
-                onClick={() => setLanguage(language === 'en' ? 'hi' : 'en')}
-                className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200 hover:border-emerald-300/30 hover:bg-emerald-500/10"
-              >
-                <span>Language</span>
-                <span className="uppercase font-semibold">{language}</span>
-              </button>
             </div>
-          </div>
+          </motion.div>
         )}
-      </div>
+      </AnimatePresence>
     </nav>
   );
 };

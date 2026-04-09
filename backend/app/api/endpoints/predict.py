@@ -40,16 +40,16 @@ async def predict_disease(
     prediction_record = Prediction(
         user_id=current_user.id,
         label=result["label"],
-        crop_type=result["crop_type"],
-        disease_status=result["disease_status"],
-        confidence=result["confidence_score"],
-        confidence_pct=result["confidence_pct"],
-        disease_info=result["disease_info"],
-        prevention=result["prevention"],
-        treatment=result["treatment"],
-        treatment_recommendation=result["treatment"], # Legacy compatibility
+        crop_type=result.get("crop_type", "Unknown"),
+        disease_status=result.get("disease_status", "Unknown"),
+        confidence=result.get("confidence_score", 0.0),
+        confidence_pct=result.get("confidence", "0%"),
+        disease_info=result.get("message", ""),
+        prevention=result.get("prevention", ""),
+        treatment=result.get("prevention", ""), # Mapping for legacy treatement field
+        treatment_recommendation=result.get("prevention", ""),
         image_path=f"/uploads/{unique_filename}",
-        heatmap_path=None # Can be added back if Grad-CAM is implemented
+        heatmap_path=None
     )
     
     try:

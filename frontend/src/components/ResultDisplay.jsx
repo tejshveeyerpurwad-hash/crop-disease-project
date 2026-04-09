@@ -1,105 +1,133 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { AlertTriangle, CheckCircle, RefreshCcw } from 'lucide-react';
+import { AlertTriangle, CheckCircle, Volume2, RotateCcw, Info, ChevronRight, XCircle, Search } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 
 const ResultDisplay = ({ result, imagePreview, onReset }) => {
   const { t, language } = useAppContext();
-  
   if (!result) return null;
 
-  const isHealthy = result.status?.toLowerCase() === 'healthy';
-  const confidence = result.confidence || 0;
-  const simpleAdvice = result.simple_advice?.[language] || result.simple_advice?.['en'];
+  // Map new backend format to local variables
+  // Expected fields: label, confidence, message, prevention
+  const label = result.label || "Analysis Finished";
+  const confidenceStr = result.confidence || "0%";
+  const confidenceVal = parseFloat(confidenceStr);
+  const message = result.message || "";
+  const prevention = result.prevention || "";
   
+  const isHealthy = label.toLowerCase().includes('healthy');
+  const isInvalid = label.toLowerCase().includes('not a leaf');
+  const isUncertain = label.toLowerCase().includes('uncertain');
+
   const speakResult = () => {
     const speech = new SpeechSynthesisUtterance();
-    speech.text = `${isHealthy ? t('healthy') : t('diseased')}. ${simpleAdvice}. Recommendations: ${result.recommendation}`;
+    speech.text = `${label}. ${message}`;
     speech.lang = language === 'hi' ? 'hi-IN' : 'en-US';
     window.speechSynthesis.speak(speech);
   };
 
+  const getStatusConfig = () => {
+    if (isInvalid) return { 
+      bg: 'bg-slate-50', border: 'border-slate-200', text: 'text-slate-700', 
+      icon: <XCircle className="w-6 h-6" />, iconBg: 'bg-slate-100', iconColor: 'text-slate-600',
+      title: 'Invalid Image'
+    };
+    if (isUncertain) return { 
+      bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', 
+      icon: <Search className="w-6 h-6" />, iconBg: 'bg-amber-100', iconColor: 'text-amber-600',
+      title: 'Uncertain Result'
+    };
+    if (isHealthy) return { 
+      bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-700', 
+      icon: <CheckCircle className="w-6 h-6" />, iconBg: 'bg-green-100', iconColor: 'text-green-600',
+      title: 'Healthy'
+    };
+    return { 
+      bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', 
+      icon: <AlertTriangle className="w-6 h-6" />, iconBg: 'bg-red-100', iconColor: 'text-red-600',
+      title: 'Diseased'
+    };
+  };
+
+  const status = getStatusConfig();
+
   return (
-    <motion.div 
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      className="max-w-4xl mx-auto py-8 px-4"
-    >
-      <div className={`rounded-3xl shadow-2xl overflow-hidden border-8 ${isHealthy ? 'border-green-500 bg-green-50' : 'border-red-500 bg-red-50'}`}>
-        {/* Header Banner */}
-        <div className={`p-8 text-center text-white ${isHealthy ? 'bg-green-500' : 'bg-red-500'}`}>
-           <div className="flex flex-col items-center gap-4">
-              {isHealthy ? <CheckCircle className="w-20 h-20" /> : <AlertTriangle className="w-20 h-20" />}
-              <h1 className="text-4xl md:text-6xl font-black uppercase">
-                {isHealthy ? t('healthy') : t('diseased')}
-              </h1>
-           </div>
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-3xl mx-auto">
+      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+        
+        {/* Status Banner */}
+        <div className={`px-8 py-6 flex items-center justify-between ${status.bg} border-b ${status.border}`}>
+          <div className="flex items-center gap-4">
+            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${status.iconBg} ${status.iconColor}`}>
+              {status.icon}
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">System Output</p>
+              <h2 className={`text-xl font-black ${status.text}`}>
+                {status.title}
+              </h2>
+            </div>
+          </div>
+          <button onClick={speakResult} className={`p-3 rounded-xl transition-all ${status.iconBg} ${status.iconColor} hover:brightness-95`}>
+            <Volume2 className="w-5 h-5" />
+          </button>
         </div>
 
-        <div className="p-6 md:p-10 space-y-8">
-           {/* Voice Button - VERY BIG for farmers */}
-           <button 
-             onClick={speakResult}
-             className="w-full py-6 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl flex items-center justify-center gap-4 shadow-xl active:scale-95 transition-all"
-           >
-              <RefreshCcw className="w-8 h-8 animate-pulse text-blue-200" />
-              <span className="text-2xl font-bold">{t('speak')}</span>
-           </button>
+        <div className="p-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Image */}
+            <div className="aspect-square rounded-2xl overflow-hidden bg-slate-100 shadow-inner">
+              <img src={imagePreview} alt="Scanned leaf" className="w-full h-full object-cover" />
+            </div>
 
-           <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-              {/* Image Preview */}
-              <div className="space-y-4">
-                 <h4 className="text-lg font-bold text-gray-500 uppercase tracking-widest">Your Plant Image</h4>
-                 <div className="aspect-square rounded-3xl overflow-hidden border-4 border-white shadow-lg">
-                    <img src={imagePreview} alt="Result" className="w-full h-full object-cover" />
-                 </div>
+            {/* Details */}
+            <div className="flex flex-col justify-between">
+              <div>
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Inferred Classification</p>
+                <h3 className="text-2xl font-black text-slate-900 tracking-tight mb-4">{label}</h3>
+
+                <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 mb-4">
+                  <p className={`text-xs font-semibold ${status.iconColor} uppercase tracking-wider mb-2`}>Expert Analysis</p>
+                  <p className="text-sm text-slate-700 leading-relaxed font-medium">{message}</p>
+                </div>
+
+                {prevention && (
+                  <div className="space-y-2">
+                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Prevention & Action</p>
+                    <div className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
+                      <div className="w-7 h-7 rounded-lg bg-green-100 text-green-700 flex items-center justify-center text-xs font-bold shrink-0">!</div>
+                      <span className="text-sm text-slate-700 font-medium">{prevention}</span>
+                    </div>
+                  </div>
+                )}
               </div>
 
-              {/* Analysis */}
-              <div className="space-y-6">
-                 <div>
-                    <h4 className="text-lg font-bold text-gray-500 uppercase tracking-widest">{t('prediction')}</h4>
-                    <p className="text-3xl font-black text-gray-800">{result.disease_name}</p>
-                 </div>
-
-                 <div className="p-6 bg-white rounded-2xl border-2 border-gray-100 shadow-sm">
-                    <h4 className="text-sm font-bold text-blue-600 mb-2">Advice for Farmer</h4>
-                    <p className="text-xl font-medium text-gray-700 leading-relaxed italic">
-                       "{simpleAdvice}"
-                    </p>
-                 </div>
-
-                 <div className="space-y-4">
-                    <h4 className="text-lg font-bold text-gray-500 uppercase tracking-widest">Next Steps</h4>
-                    <ul className="space-y-3">
-                       {result.steps?.map((step, i) => (
-                         <li key={i} className="flex items-start gap-3 text-lg font-medium text-gray-800">
-                            <div className="mt-1.5 w-3 h-3 rounded-full bg-orange-500 shrink-0" />
-                            {step}
-                         </li>
-                       ))}
-                    </ul>
-                 </div>
+              {/* Confidence */}
+              <div className="mt-6 pt-4 border-t border-slate-100">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Neural Confidence</span>
+                  <span className="text-lg font-black text-slate-900">{confidenceStr}</span>
+                </div>
+                <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                  <motion.div initial={{ width: 0 }} animate={{ width: `${confidenceVal}%` }} transition={{ duration: 1 }}
+                    className={`h-full rounded-full ${status.iconColor.replace('text', 'bg')}`} />
+                </div>
+                {confidenceVal < 75 && (
+                   <p className="text-[10px] text-amber-600 font-bold mt-2 uppercase tracking-tighter">* BELOW RELIABILITY THRESHOLD (0.75)</p>
+                )}
               </div>
-           </div>
+            </div>
+          </div>
+        </div>
 
-           {/* Confidence Meter (Simplified) */}
-           <div className="pt-6 border-t border-gray-200">
-              <div className="flex justify-between mb-2">
-                 <span className="font-bold text-gray-500">{t('confidence')}</span>
-                 <span className="font-bold text-gray-800">{result.confidence}%</span>
-              </div>
-              <div className="h-4 w-full bg-gray-200 rounded-full overflow-hidden">
-                 <div className={`h-full transition-all duration-1000 ${isHealthy ? 'bg-green-500' : 'bg-red-500'}`} style={{ width: `${result.confidence}%` }} />
-              </div>
-           </div>
-
-           <button 
-             onClick={onReset}
-             className="w-full py-5 bg-gray-800 text-white rounded-2xl text-xl font-bold hover:bg-gray-900 transition-all shadow-lg"
-           >
-              {t('home')} / New Photo
-           </button>
+        {/* Bottom Actions */}
+        <div className="px-8 py-5 border-t border-slate-100 flex items-center justify-between">
+          <button onClick={onReset} className="flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-slate-900 transition-colors">
+            <RotateCcw className="w-4 h-4" /> New Scan
+          </button>
+          <a href="/history" className="flex items-center gap-1 text-sm font-semibold text-green-600 hover:text-green-700 transition-colors">
+            View History <ChevronRight className="w-4 h-4" />
+          </a>
         </div>
       </div>
     </motion.div>
