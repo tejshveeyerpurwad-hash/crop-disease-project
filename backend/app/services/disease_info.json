@@ -1,0 +1,50 @@
+{
+  "Potato___Early_blight": {
+    "name": "Potato Early Blight",
+    "simple_en": "Your potato leaf has early blight spots. Don't worry, it can be treated.",
+    "simple_hi": "आपके आलू के पत्ते पर शुरुआती झुलसा रोग है। चिंता न करें, इसका इलाज हो सकता है।",
+    "symptoms": "Dark brown to black circular spots with concentric rings on older leaves.",
+    "prevention": "Crop rotation, avoid overhead irrigation, use certified disease-free seeds.",
+    "treatment": "Apply fungicides containing chlorothalonil or mancozeb at the first sign of disease."
+  },
+  "Potato___Late_blight": {
+    "name": "Potato Late Blight",
+    "simple_en": "Warning: Potato late blight detected. This can spread fast. Act now.",
+    "simple_hi": "चेतावनी: आलू का पिछेती झुलसा रोग पाया गया है। यह तेजी से फैल सकता है। अभी कदम उठाएं।",
+    "symptoms": "Dark, water-soaked patches on leaves that grow rapidly. White mold may appear on the underside.",
+    "prevention": "Plant resistant varieties, ensure good soil drainage, remove infected debris.",
+    "treatment": "Use fungicides such as copper-based sprays or specialized systemic fungicides."
+  },
+  "Potato___healthy": {
+    "name": "Healthy Potato",
+    "simple_en": "Great news! Your potato plant is perfectly healthy.",
+    "simple_hi": "बहुत अच्छी खबर! आपका आलू का पौधा पूरी तरह स्वस्थ है।",
+    "symptoms": "Leaves are green and free from spots or patches.",
+    "prevention": "Maintain regular watering and fertilization; monitor for early signs of pests.",
+    "treatment": "No treatment required."
+  },
+  "Tomato___Bacterial_spot": {
+    "name": "Tomato Bacterial Spot",
+    "simple_en": "Your tomato plant has bacterial spots. Keep leaves dry.",
+    "simple_hi": "आपके टमाटर के पौधे पर बैक्टीरियल धब्बे हैं। पत्तों को सूखा रखें।",
+    "symptoms": "Small, dark, water-soaked spots on leaves which later turn brown and papery.",
+    "prevention": "Use pathogen-free seeds, avoid working with plants when they are wet.",
+    "treatment": "Copper-based sprays can help reduce the spread of bacteria."
+  },
+  "Tomato___Leaf_Mold": {
+    "name": "Tomato Leaf Mold",
+    "simple_en": "Tomato leaf mold detected. Needs better air circulation.",
+    "simple_hi": "टमाटर के पत्तों पर फफूंद (लीफ मोल्ड) पाई गई है। बेहतर हवा की जरूरत है।",
+    "symptoms": "Pale greenish-yellow spots on the upper leaf surface; olive-green fuzzy growth on the underside.",
+    "prevention": "Improve air circulation, reduce humidity in greenhouses, use resistant varieties.",
+    "treatment": "Apply fungicides containing calcium polysulfide or other approved products."
+  },
+  "Tomato___healthy": {
+    "name": "Healthy Tomato",
+    "simple_en": "Your tomato plant looks very healthy and strong.",
+    "simple_hi": "आपका टमाटर का पौधा बहुत स्वस्थ और मजबूत दिख रहा है।",
+    "symptoms": "Lush green foliage with no signs of discoloration or mold.",
+    "prevention": "Ensure adequate spacing and consistent watering.",
+    "treatment": "No treatment required."
+  }
+}

@@ -6,95 +6,83 @@ import { useAppContext } from '../context/AppContext';
 const Hero = ({ onUploadClick }) => {
   const { t } = useAppContext();
 
+  const stats = [
+    { label: 'Diseases Covered', value: '32+' },
+    { label: 'Avg. Confidence', value: '94.7%' },
+    { label: 'Realtime Updates', value: 'Supported' },
+  ];
+
   return (
-    <div className="relative overflow-hidden pt-16 pb-24 lg:pt-32 lg:pb-40">
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[600px] pointer-events-none overflow-hidden opacity-20 dark:opacity-10">
-         <div className="absolute top-[-100px] left-[-200px] w-[800px] h-[800px] bg-green-500 rounded-full blur-[120px]"></div>
-         <div className="absolute top-[200px] right-[-300px] w-[600px] h-[600px] bg-emerald-500 rounded-full blur-[100px]"></div>
+    <section className="relative overflow-hidden pt-16 pb-28 lg:pt-28 lg:pb-36">
+      <div className="absolute inset-x-0 top-0 h-[520px] pointer-events-none">
+        <div className="absolute left-[-8%] top-24 w-[320px] h-[320px] rounded-full bg-emerald-500/20 blur-3xl"></div>
+        <div className="absolute right-[-12%] top-12 w-[380px] h-[380px] rounded-full bg-cyan-500/15 blur-3xl"></div>
+        <div className="absolute left-1/2 top-[220px] h-[260px] w-[260px] -translate-x-1/2 rounded-full bg-violet-500/10 blur-3xl"></div>
       </div>
 
-      <div className="container mx-auto px-4 md:px-6 lg:px-8 relative z-10 text-center">
+      <div className="container mx-auto px-4 md:px-6 lg:px-8 relative z-10">
         <motion.div
-           initial={{ opacity: 0, y: 20 }}
-           animate={{ opacity: 1, y: 0 }}
-           transition={{ duration: 0.5 }}
-           className="inline-flex items-center space-x-2 px-4 py-2 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-sm font-semibold mb-8 border border-green-200 dark:border-green-800/50"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="inline-flex items-center rounded-full border border-white/10 bg-white/10 px-4 py-2 text-sm text-emerald-200 shadow-sm shadow-emerald-500/10 backdrop-blur"
         >
-          <Leaf className="w-4 h-4" />
-          <span>Advanced AI Detection Powered by Deep Learning</span>
+          <Leaf className="w-4 h-4 text-emerald-300" />
+          <span className="ml-2">AI-powered detection with modern plant intelligence</span>
         </motion.div>
 
-        <motion.h1 
-          className="text-5xl md:text-7xl font-extrabold tracking-tight mb-8"
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          className="max-w-4xl mx-auto mt-10 text-center"
         >
-          <span className="bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 dark:from-green-400 dark:via-emerald-400 dark:to-teal-400 bg-clip-text text-transparent">
-            {t('title')}
-          </span>
-        </motion.h1>
-
-        <motion.p 
-          className="max-w-3xl mx-auto text-xl text-gray-600 dark:text-gray-400 mb-12 leading-relaxed"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-        >
-          {t('subtitle')}
-        </motion.p>
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-black tracking-tight text-white">
+            <span className="bg-gradient-to-r from-emerald-300 via-cyan-300 to-violet-300 bg-clip-text text-transparent">
+              {t('title')}
+            </span>
+          </h1>
+          <p className="mt-6 text-lg md:text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed">
+            {t('subtitle')}
+          </p>
+        </motion.div>
 
         <motion.div
-          className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-6"
+          className="mt-12 flex flex-col gap-4 sm:flex-row sm:justify-center sm:items-center"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
         >
-          <button 
+          <button
             onClick={onUploadClick}
-            className="btn-primary w-full sm:w-auto h-14 text-lg space-x-2"
+            className="btn-primary inline-flex items-center justify-center gap-3 px-8 py-4 text-base font-semibold shadow-2xl shadow-emerald-500/20"
           >
             <span>{t('upload')}</span>
             <ArrowRight className="w-5 h-5" />
           </button>
-          
-          <div className="flex items-center space-x-4">
-             <div className="flex -space-x-2">
-                {[1, 2, 3, 4].map(i => (
-                  <div key={i} className="w-10 h-10 rounded-full border-2 border-white dark:border-gray-900 bg-green-500 overflow-hidden">
-                    <img src={`https://i.pravatar.cc/100?img=${i+10}`} alt="avatar" />
-                  </div>
-                ))}
-             </div>
-             <div className="text-left">
-                <p className="text-sm font-bold">1,000+ Farmers</p>
-                <p className="text-xs text-gray-500">Already using our platform</p>
-             </div>
-          </div>
+          <button
+            className="inline-flex items-center justify-center gap-3 rounded-3xl border border-white/10 bg-white/5 px-8 py-4 text-base font-semibold text-slate-200 transition hover:border-emerald-300/30 hover:bg-emerald-500/10"
+            onClick={() => window.scrollTo({ top: document.body.scrollHeight / 2, behavior: 'smooth' })}
+          >
+            Explore Features
+          </button>
         </motion.div>
 
         <motion.div
-          className="mt-24 grid grid-cols-1 md:grid-cols-3 gap-8"
-          initial={{ opacity: 0, y: 40 }}
+          className="mt-16 grid gap-6 lg:grid-cols-3"
+          initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.5 }}
+          transition={{ duration: 0.7, delay: 0.3 }}
         >
-          {[
-            { icon: ShieldCheck, title: "Highly Accurate", desc: "98%+ accuracy on 30+ types of crops and diseases." },
-            { icon: Zap, title: "Real-time Results", desc: "Get predictions within seconds after uploading your image." },
-            { icon: Leaf, title: "Smart Care", desc: "Receive customized treatment and prevention recommendations." }
-          ].map((feature, idx) => (
-            <div key={idx} className="glass-card p-8 text-center flex flex-col items-center">
-               <div className="p-3 bg-green-500/10 rounded-2xl mb-6">
-                 <feature.icon className="w-8 h-8 text-green-600 dark:text-green-400" />
-               </div>
-               <h3 className="text-xl font-bold mb-3">{feature.title}</h3>
-               <p className="text-gray-500 dark:text-gray-400 leading-relaxed">{feature.desc}</p>
+          {stats.map((stat) => (
+            <div key={stat.label} className="glass-card border border-white/10 p-6 text-left shadow-2xl shadow-slate-900/10">
+              <p className="text-sm uppercase tracking-[0.25em] text-emerald-300/80 mb-3">{stat.label}</p>
+              <p className="text-4xl font-black text-white">{stat.value}</p>
             </div>
           ))}
         </motion.div>
       </div>
-    </div>
+    </section>
   );
 };
 

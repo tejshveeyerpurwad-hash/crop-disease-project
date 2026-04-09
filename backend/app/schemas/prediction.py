@@ -7,9 +7,13 @@ class PredictionResponse(BaseModel):
     crop_type: str
     disease_status: str
     confidence: float
-    treatment_recommendation: str
+    confidence_pct: str
+    label: str
+    disease_info: str
+    prevention: str
+    treatment: str
+    treatment_recommendation: str  # Kept for legacy compatibility
     image_path: str
-    heatmap_path: str
     created_at: Optional[datetime]
 
     class Config:

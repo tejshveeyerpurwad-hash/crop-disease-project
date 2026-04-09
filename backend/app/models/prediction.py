@@ -8,12 +8,22 @@ class Prediction(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"))
+    
+    # Core detection
+    label = Column(String)
     crop_type = Column(String)
     disease_status = Column(String)
     confidence = Column(Float)
-    treatment_recommendation = Column(String)
+    confidence_pct = Column(String)
+    
+    # Detailed info
+    disease_info = Column(String)
+    prevention = Column(String)
+    treatment = Column(String)
+    treatment_recommendation = Column(String) # For compatibility
+    
     image_path = Column(String)
-    heatmap_path = Column(String)
+    heatmap_path = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     user = relationship("User", back_populates="predictions")

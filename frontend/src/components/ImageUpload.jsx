@@ -77,149 +77,89 @@ const ImageUpload = ({ onPredict, isProcessing, progress }) => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto py-12 px-4">
-      <div className="glass-card p-8 md:p-12">
-        <div className="flex flex-col items-center mb-10">
-           <h2 className="text-3xl font-bold mb-2">{t('upload')}</h2>
-           <p className="text-gray-500 dark:text-gray-400">{t('dragDrop')}</p>
+    <div className="max-w-4xl mx-auto py-10 px-4">
+      <div className="bg-white rounded-[2rem] p-8 shadow-2xl border-4 border-gray-100">
+        <div className="text-center mb-8">
+           <h2 className="text-4xl font-black mb-2 text-gray-800">{t('upload')}</h2>
+           <p className="text-xl text-gray-500 font-medium">{t('subtitle')}</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-            {/* Upload Area */}
-            <div className="relative">
+        <div className="flex flex-col items-center gap-8">
+            {/* Capture/Upload Preview */}
+            <div className="w-full max-w-lg aspect-square relative rounded-3xl overflow-hidden bg-gray-50 border-4 border-dashed border-gray-200 flex items-center justify-center">
               <AnimatePresence mode="wait">
                 {preview ? (
-                  <motion.div 
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    className="relative aspect-square rounded-2xl overflow-hidden glass-card group"
-                  >
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full h-full relative">
                     <img src={preview} alt="Preview" className="w-full h-full object-cover" />
                     {!isProcessing && (
-                      <button 
-                        onClick={clearFile}
-                        className="absolute top-4 right-4 p-2 bg-red-500 text-white rounded-full shadow-lg hover:bg-red-600 transition-colors"
-                      >
-                        <X className="w-5 h-5" />
+                      <button onClick={clearFile} className="absolute top-4 right-4 p-4 bg-red-500 text-white rounded-2xl shadow-xl">
+                        <X className="w-8 h-8" />
                       </button>
                     )}
                   </motion.div>
                 ) : useCamera ? (
-                  <motion.div 
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="relative aspect-square rounded-2xl overflow-hidden bg-black"
-                  >
-                    <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover" />
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full h-full relative">
+                    <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover bg-black" />
                     <canvas ref={canvasRef} className="hidden" />
-                    <div className="absolute bottom-6 left-0 right-0 flex justify-center space-x-4">
-                       <button onClick={capturePhoto} className="p-4 bg-green-600 text-white rounded-full shadow-xl">
-                          <Camera className="w-6 h-6" />
+                    <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-6">
+                       <button onClick={capturePhoto} className="p-8 bg-green-500 text-white rounded-full shadow-2xl scale-125">
+                          <Camera className="w-10 h-10" />
                        </button>
-                       <button onClick={stopCamera} className="p-4 bg-red-600 text-white rounded-full shadow-xl">
-                          <X className="w-6 h-6" />
+                       <button onClick={stopCamera} className="p-8 bg-black/50 text-white rounded-full backdrop-blur-md">
+                          <X className="w-8 h-8" />
                        </button>
                     </div>
                   </motion.div>
                 ) : (
-                  <div 
-                    {...getRootProps()} 
-                    className={`relative aspect-square rounded-2xl border-3 border-dashed flex flex-col items-center justify-center cursor-pointer transition-all duration-300 ${isDragActive ? 'border-green-500 bg-green-500/10' : 'border-gray-200 dark:border-gray-800 hover:border-green-400 hover:bg-green-50 dark:hover:bg-green-950/20'}`}
-                  >
-                    <input {...getInputProps()} />
-                    <div className="p-6 bg-green-100 dark:bg-green-900/30 rounded-3xl mb-6">
-                      <Upload className="w-12 h-12 text-green-600 dark:text-green-400" />
+                  <div className="text-center p-10 space-y-6">
+                    <div className="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto">
+                      <ImageIcon className="w-12 h-12" />
                     </div>
-                    <p className="text-lg font-bold mb-2">{t('browse')}</p>
-                    <p className="text-sm text-gray-500">{t('or')} {t('dragDrop')}</p>
-                    <button 
-                      type="button" 
-                      onClick={(e) => { e.stopPropagation(); startCamera(); }}
-                      className="mt-6 flex items-center space-x-2 text-green-600 dark:text-green-400 font-bold hover:underline"
-                    >
-                      <Camera className="w-5 h-5" />
-                      <span>Use Camera</span>
-                    </button>
+                    <p className="text-2xl font-bold text-gray-400">Click button below to start</p>
                   </div>
                 )}
               </AnimatePresence>
             </div>
 
-            {/* Status & Action */}
-            <div className="flex flex-col justify-center space-y-8">
-               <div className="space-y-6">
-                  <StatusItem 
-                    icon={Upload} 
-                    label={t('uploading')} 
-                    active={progress >= 10} 
-                    done={progress >= 50} 
-                  />
-                  <StatusItem 
-                    icon={Loader2} 
-                    label={t('processing')} 
-                    active={progress >= 50} 
-                    done={progress >= 100} 
-                    spinning={isProcessing && progress >= 50 && progress < 100} 
-                  />
-                  <StatusItem 
-                    icon={CheckCircle2} 
-                    label={t('completed')} 
-                    active={progress >= 100} 
-                    done={progress >= 100} 
-                  />
-               </div>
-
-               {isProcessing && (
-                 <div className="space-y-2">
-                    <div className="h-3 w-full bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
-                       <motion.div 
-                        className="h-full bg-green-500"
-                        initial={{ width: 0 }}
-                        animate={{ width: `${progress}%` }}
-                       />
-                    </div>
-                    <p className="text-xs text-right font-medium text-gray-500">{progress}% Completed</p>
+            {/* Actions */}
+            <div className="w-full max-w-lg space-y-6">
+               {isProcessing ? (
+                 <div className="text-center p-10 bg-blue-50 rounded-3xl border-4 border-blue-200">
+                    <Loader2 className="w-20 h-20 animate-spin text-blue-500 mx-auto mb-4" />
+                    <h3 className="text-3xl font-black text-blue-700">{t('processing')}</h3>
+                    <p className="text-blue-500 font-bold mt-2 text-xl">Please wait...</p>
                  </div>
-               )}
-
-               <button 
-                onClick={handleSubmit}
-                disabled={!file || isProcessing}
-                className="btn-primary py-5 text-xl w-full"
-               >
-                 {isProcessing ? (
-                   <>
-                     <Loader2 className="w-6 h-6 animate-spin mr-3" />
-                     {t('processing')}
-                   </>
-                 ) : (
-                   t('upload')
-                 )}
-               </button>
-
-               {!file && !isProcessing && (
-                 <div className="flex items-start space-x-3 p-4 bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800/50 rounded-xl">
-                    <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-500 mt-0.5" />
-                    <p className="text-sm text-amber-800 dark:text-amber-400">
-                      Ensure the image has clear lighting and focuses on the affected parts of the plant for better accuracy.
-                    </p>
+               ) : (
+                 <div className="grid grid-cols-1 gap-4">
+                    {!preview ? (
+                      <>
+                        <button 
+                          onClick={startCamera}
+                          className="w-full py-8 bg-green-500 hover:bg-green-600 text-white rounded-3xl text-3xl font-black flex items-center justify-center gap-6 shadow-xl transition-all active:scale-95"
+                        >
+                          <Camera className="w-12 h-12" />
+                          {t('camera')}
+                        </button>
+                        <div {...getRootProps()} className="w-full py-6 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-3xl text-xl font-bold flex items-center justify-center gap-4 cursor-pointer">
+                          <input {...getInputProps()} />
+                          <Upload className="w-6 h-6" />
+                          {t('browse')}
+                        </div>
+                      </>
+                    ) : (
+                      <button 
+                        onClick={handleSubmit}
+                        className="w-full py-8 bg-blue-600 hover:bg-blue-700 text-white rounded-3xl text-3xl font-black shadow-xl transition-all active:scale-95"
+                      >
+                        ✅ CHECK NOW
+                      </button>
+                    )}
                  </div>
                )}
             </div>
         </div>
       </div>
-    </div>
   );
 };
-
-const StatusItem = ({ icon: Icon, label, active, done, spinning }) => (
-  <div className={`flex items-center space-x-4 transition-all duration-500 ${active ? 'opacity-100' : 'opacity-40 grayscale'}`}>
-    <div className={`p-2.5 rounded-xl ${done ? 'bg-green-500 text-white' : 'bg-gray-100 dark:bg-gray-800'}`}>
-      <Icon className={`w-6 h-6 ${spinning ? 'animate-spin text-green-500' : ''}`} />
-    </div>
-    <span className={`font-bold text-lg ${done ? 'text-green-600 dark:text-green-400' : ''}`}>{label}</span>
-  </div>
-);
 
 export default ImageUpload;
